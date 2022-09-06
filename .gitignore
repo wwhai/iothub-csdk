@@ -1,0 +1,9 @@
+/dep/
+/build/
+/build.paho/
+*.swp
+*.pyc
+/build.paho
+./paho/*
+main
+.vscode/*
