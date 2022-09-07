@@ -6,4 +6,5 @@
 /build.paho
 ./paho/*
 main
-.vscode/*
+.vscode*
+test*

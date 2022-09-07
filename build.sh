@@ -1,1 +1,0 @@
-gcc main.c -o main -lpaho-mqtt3c -lpaho-mqtt3a

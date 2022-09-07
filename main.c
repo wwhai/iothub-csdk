@@ -1,99 +1,81 @@
-#include <stdio.h>
+#include "iothub.h"
 #include <stdlib.h>
-#include <string.h>
-#include "MQTTClient.h"
+/**
+ * 消息回调
+ *
+ */
+PRIVATEFUNC void OnMessage(struct iothubsdk *sdk, char *message){
+    //
+    // SDKPropertyReply(sdk, "");
+    //
+};
+/**
+ * 掉线回调
+ *
+ */
+PRIVATEFUNC void OnClosed(struct iothubsdk *sdk, char *reason){
 
-#define ADDRESS "tcp://mqtt.eclipseprojects.io:1883"
-#define CLIENTID "ExampleClientSub"
-#define TOPIC "MQTT Examples"
-#define PAYLOAD "Hello World!"
-#define QOS 1
-#define TIMEOUT 10000L
+};
+/**
+ * 消息发布成功回调
+ *
+ */
+PRIVATEFUNC void OnDeliver(struct iothubsdk *sdk, int token){
 
-volatile MQTTClient_deliveryToken deliveredtoken;
-
-void delivered(void *context, MQTTClient_deliveryToken dt)
+};
+/**
+ *
+ *
+ */
+int main(int argc, char const *argv[])
 {
-    printf("Message with token value %d delivery confirmed\n", dt);
-    deliveredtoken = dt;
-}
-
-int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message)
-{
-    printf("Message arrived\n");
-    printf("     topic: %s\n", topicName);
-    printf("   message: %.*s\n", message->payloadlen, (char *)message->payload);
-    MQTTClient_freeMessage(&message);
-    MQTTClient_free(topicName);
-    return 1;
-}
-
-void connlost(void *context, char *cause)
-{
-    printf("\nConnection lost\n");
-    printf("     cause: %s\n", cause);
-}
-
-int main(int argc, char *argv[])
-{
-    MQTTClient client;
-    MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
-    int rc;
-
-    if ((rc = MQTTClient_create(&client, ADDRESS, CLIENTID,
-                                MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTCLIENT_SUCCESS)
+    log_set_level(LOG_DEBUG);
+    struct iothubsdk *sdk = SDKNewMqttDevice();
+    if (sdk == NULL)
     {
-        printf("Failed to create client, return code %d\n", rc);
-        rc = EXIT_FAILURE;
-        goto exit;
-    }
-
-    if ((rc = MQTTClient_setCallbacks(client, NULL, connlost, msgarrvd, delivered)) != MQTTCLIENT_SUCCESS)
-    {
-        printf("Failed to set callbacks, return code %d\n", rc);
-        rc = EXIT_FAILURE;
-        goto destroy_exit;
-    }
-
-    conn_opts.keepAliveInterval = 20;
-    conn_opts.cleansession = 1;
-    if ((rc = MQTTClient_connect(client, &conn_opts)) != MQTTCLIENT_SUCCESS)
-    {
-        printf("Failed to connect, return code %d\n", rc);
-        rc = EXIT_FAILURE;
-        goto destroy_exit;
-    }
-
-    printf("Subscribing to topic %s\nfor client %s using QoS%d\n\n"
-           "Press Q<Enter> to quit\n\n",
-           TOPIC, CLIENTID, QOS);
-    if ((rc = MQTTClient_subscribe(client, TOPIC, QOS)) != MQTTCLIENT_SUCCESS)
-    {
-        printf("Failed to subscribe, return code %d\n", rc);
-        rc = EXIT_FAILURE;
+        log_fatal("sdk create failed");
+        return 0;
     }
     else
     {
-        int ch;
-        do
+        log_info("sdk create successfully");
+    }
+    log_info("set struct iothubsdk callback");
+    if (SDKSetCallback(sdk, OnMessage, OnClosed, OnDeliver) != 0)
+    {
+        log_fatal("callback create failed");
+        exit(0);
+    }
+    else
+    {
+        log_info("callback create successfully");
+    }
+    if (SDKStart(sdk) != 0)
+    {
+        log_fatal("sdk start failed");
+        exit(0);
+    }
+    else
+    {
+        log_info("sdk start successfully");
+    }
+    char cmd[8] = {0};
+    printf("Application terminal[VTTY]\n");
+    for (;;)
+    {
+        printf("Input cmd $> ");
+        scanf("%s", cmd);
+        if (cmd[0] == 'Q' || cmd[0] == 'q')
         {
-            ch = getchar();
-        } while (ch != 'Q' && ch != 'q');
-
-        if ((rc = MQTTClient_unsubscribe(client, TOPIC)) != MQTTCLIENT_SUCCESS)
+            log_info("application exit");
+            SDKStop(sdk);
+            exit(0);
+        }
+        else
         {
-            printf("Failed to unsubscribe, return code %d\n", rc);
-            rc = EXIT_FAILURE;
+            printf("# help: ['Q' or 'q' for exit]\n");
         }
     }
-
-    if ((rc = MQTTClient_disconnect(client, 10000)) != MQTTCLIENT_SUCCESS)
-    {
-        printf("Failed to disconnect, return code %d\n", rc);
-        rc = EXIT_FAILURE;
-    }
-destroy_exit:
-    MQTTClient_destroy(&client);
-exit:
-    return rc;
+    SDKStop(sdk);
+    return 0;
 }
