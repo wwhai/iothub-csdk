@@ -80,7 +80,8 @@ int SDKStart(struct iothubsdk *sdk)
     int rc;
     if ((rc = MQTTClient_connect(sdk->client, &sdk->conn_opts)) != MQTTCLIENT_SUCCESS)
     {
-        log_error("failed to connect mqtt server, return code %d", rc);
+        log_error("failed to connect mqtt server: %s, username: %s, clientis: %s, return code %d",
+                  MQTT_U, MQTT_C, MQTT_HOST, rc);
         return rc; // -1
     }
     {
@@ -105,23 +106,34 @@ int SDKStop(struct iothubsdk *sdk)
     MQTTClient_destroy(&sdk->client);
     free(sdk);
 }
-int SDKPropertyReply(struct iothubsdk *sdk, const char *payload)
+int SDKPropertyReply(struct iothubsdk *sdk, iothub_property_msg msg)
 {
-    int rc;
-    if (rc = MQTTClient_publish(sdk->client, PROPERTY_REPLY, strlen(payload), payload, 1, 0, NULL) != MQTTCLIENT_SUCCESS)
-    {
-        log_error("failed to PROPERTY_REPLY, return code %d", rc);
-        return rc; // -1
-    };
+    // int rc;
+    // if (rc = MQTTClient_publish(sdk->client, PROPERTY_REPLY, strlen(payload), payload, 1, 0, NULL) != MQTTCLIENT_SUCCESS)
+    // {
+    //     log_error("failed to PROPERTY_REPLY, return code %d", rc);
+    //     return rc; // -1
+    // };
     return 0;
 }
-int SDKActionReply(struct iothubsdk *sdk, const char *payload)
+//
+// 设置属性
+//
+int SDKSetProperty(struct iothubsdk *sdk, iothub_property *p)
 {
-    int rc;
-    if (rc = MQTTClient_publish(sdk->client, ACTION_REPLY, strlen(payload), payload, 1, 0, NULL) != MQTTCLIENT_SUCCESS)
+    if (sdk != NULL)
     {
-        log_error("failed to ACTION_REPLY, return code %d", rc);
-        return rc; // -1
-    };
-    return 0;
+        sdk->property = p;
+        return 0;
+    }
+    return -1;
+}
+// 属性上报
+int SDKPropertyUp(struct iothubsdk *sdk)
+{
+    if (sdk != NULL)
+    {
+        return 0;
+    }
+    return -1;
 }
