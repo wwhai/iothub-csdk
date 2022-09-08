@@ -29,6 +29,16 @@ PRIVATEFUNC void OnDeliver(struct iothubsdk *sdk, int token){
  */
 int main(int argc, char const *argv[])
 {
+    iothub_property_msg msg;
+    msg.method = "property";
+    msg.id = 1;
+    msg.timestamp = 1;
+    iothub_property p = {
+        1,
+        2,
+    };
+    msg.p = p;
+    build_iothub_property_msg(msg);
     log_set_level(LOG_DEBUG);
     struct iothubsdk *sdk = SDKNewMqttDevice();
     if (sdk == NULL)

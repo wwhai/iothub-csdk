@@ -3,22 +3,24 @@
 
 // TODO 根据物模型生成结构体 这部分工作可以交给前端来做(`>`) 实际上前端来做更简单
 // 属性
-// #BEGIN
+// #AUTO-GEN-BEGIN
 typedef struct iothub_property
 {
+    // 属性列表
+    int a;
+    int b;
 } iothub_property;
-
+// ##AUTO-GEN-END
 //
 // 回复类消息
 //
 typedef struct iothub_reply_msg
 {
     char *method;
-    char *actionid; // 仅对Action有效
     long long id;
     int code;
     long long timestamp;
-    char *status;
+    const char *status;
 } iothub_reply_msg;
 //
 // 属性
@@ -31,7 +33,7 @@ typedef struct iothub_property_msg
     iothub_property p;
 } iothub_property_msg;
 
-// #END
+// 上报属性数据JSON生成, 具体函数实现由生成器自动生成
 void build_iothub_property_msg(iothub_property_msg msg);
 
 #endif
