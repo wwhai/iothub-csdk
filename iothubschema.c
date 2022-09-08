@@ -1,25 +1,55 @@
 #include "stdio.h"
 #include "iothubschema.h"
 #include "cJSON.h"
-void build_iothub_property_msg(iothub_property_msg msg)
+#include "log.h"
+#include "utils.h"
+char *SDKBuildPropertyMsg(iothub_property msg)
 {
     // 构建外层JSON
-    cJSON *json = cJSON_CreateObject();
+    long micro = getMicrotime();
+    cJSON *root = cJSON_CreateObject();
+    cJSON *method = cJSON_CreateString("property");
+    cJSON *id = cJSON_CreateNumber(micro);
+    cJSON *timestamp = cJSON_CreateNumber(micro);
+    // 构建节点
+    cJSON_AddItemToObject(root, "method", method);
+    cJSON_AddItemToObject(root, "id", id);
+    cJSON_AddItemToObject(root, "timestamp", timestamp);
+    cJSON *data = cJSON_CreateObject();
+    //----------------------------------------------------------------------------------------------
+    // Property BEGIN
+    //----------------------------------------------------------------------------------------------
+    {
+        cJSON *a = cJSON_CreateNumber(msg.a);
+        cJSON_AddItemToObject(data, "a", a);
+        cJSON *b = cJSON_CreateNumber(msg.b);
+        cJSON_AddItemToObject(data, "b", b);
+        cJSON *values = cJSON_CreateString(cJSON_PrintUnformatted(data));
+        cJSON_AddItemToObject(root, "data", values);
+    }
+    //----------------------------------------------------------------------------------------------
+    // Property END
+    //----------------------------------------------------------------------------------------------
+    char *string = cJSON_PrintUnformatted(root);
+    log_debug("SDKBuildPropertyMsg: %s\n", string);
+    return string;
+}
+//
+char *SDKBuildReplyMsg(iothub_reply_msg msg)
+{
+    // 构建外层JSON
+    cJSON *root = cJSON_CreateObject();
     cJSON *method = cJSON_CreateString(msg.method);
     cJSON *id = cJSON_CreateNumber(msg.id);
+    cJSON *code = cJSON_CreateNumber(msg.code);
     cJSON *timestamp = cJSON_CreateNumber(msg.timestamp);
-    cJSON_AddItemToObject(json, "method", method);
-    cJSON_AddItemToObject(json, "id", id);
-    cJSON_AddItemToObject(json, "timestamp", timestamp);
-    // 构建data
-    cJSON *data = cJSON_CreateObject();
-    {
-        cJSON *a = cJSON_CreateNumber(msg.p.a);
-        cJSON *b = cJSON_CreateNumber(msg.p.b);
-        cJSON_AddItemToObject(data, "a", a);
-        cJSON_AddItemToObject(data, "b", b);
-    }
-    cJSON_AddItemToObject(json, "data", data);
-    char *string = cJSON_PrintUnformatted(json);
-    printf("Json:%s\n", string);
+    cJSON *status = cJSON_CreateString(msg.status);
+    cJSON_AddItemToObject(root, "method", method);
+    cJSON_AddItemToObject(root, "id", id);
+    cJSON_AddItemToObject(root, "timestamp", timestamp);
+    cJSON_AddItemToObject(root, "code", code);
+    cJSON_AddItemToObject(root, "status", status);
+    char *jsons = cJSON_PrintUnformatted(root);
+    log_debug("SDKBuildReplyMsg: %s", jsons);
+    return jsons;
 }

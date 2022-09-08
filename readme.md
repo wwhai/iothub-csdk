@@ -19,3 +19,6 @@ sudo apt install make jq -y
 make clean
 make
 ```
+## 设计思路
+1. 所有错误结果均不为0, 可能是-1,1,2,3等;
+2. 0是唯一正确结果

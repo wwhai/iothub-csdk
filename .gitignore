@@ -10,4 +10,5 @@ main
 test*
 *.o
 *.exe
-iothub-device
+iothub-device*
+iothub-device-test*

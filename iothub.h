@@ -37,8 +37,7 @@ int SDKSetProperty(struct iothubsdk *sdk, iothub_property *p);
 // 属性上报
 int SDKPropertyUp(struct iothubsdk *sdk);
 // 属性回复
-int SDKPropertyReply(struct iothubsdk *sdk, iothub_property_msg msg);
-
+int SDKPropertyReply(struct iothubsdk *sdk, iothub_reply_msg msg);
 // 停止
 int SDKStop(struct iothubsdk *sdk);
 #endif
