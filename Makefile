@@ -15,4 +15,4 @@ test : ${objects-test}
 
 .PHONY : clean
 clean :
-	rm -rf iothub-device* ${objects}
+	rm -rf iothub-device* ${objects} atest.o
