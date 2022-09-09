@@ -10,7 +10,7 @@ PRIVATEFUNC void OnMessage(struct iothubsdk *sdk, char *message)
 
     iothub_reply_msg msg = {
         .method = "property_reply",
-        .id = 10086,
+        .id = "10086",
         .code = 10086,
         .timestamp = 10086,
         .status = "TEST-OK",
@@ -45,24 +45,15 @@ int main(int argc, char const *argv[])
         log_fatal("sdk create failed");
         return 0;
     }
-    log_info("set struct iothubsdk callback");
     if (SDKSetCallback(sdk, OnMessage, OnClosed, OnDeliver) != 0)
     {
         log_fatal("callback create failed");
-        exit(0);
-    }
-    else
-    {
-        log_info("callback create successfully");
+        return 0;
     }
     if (SDKStart(sdk) != 0)
     {
         log_fatal("sdk start failed");
-        exit(0);
-    }
-    else
-    {
-        log_info("sdk start successfully");
+        return 0;
     }
     char cmd[8] = {0};
     printf("SDK terminal [STTY] @linux\n");
@@ -74,7 +65,7 @@ int main(int argc, char const *argv[])
         {
             log_info("exit");
             SDKStop(sdk);
-            exit(0);
+            return 0;
         }
         if (cmd[0] == 'H' || cmd[0] == 'h')
         {
