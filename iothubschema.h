@@ -1,15 +1,14 @@
 #ifndef IOTHUBSCHEMA_H
 #define IOTHUBSCHEMA_H
-
-// TODO 根据物模型生成结构体
-// 属性列表,需要自动生成
-// #AUTO-GEN-BEGIN
-typedef struct iothub_property
+// iothub 下来的数据类型
+typedef enum MsgType
 {
-    int a;
-    int b;
-    //...
-} iothub_property;
+    T_ERROR = -1,       // 解析失败
+    T_UNRECOGNIZED = 0, // 未识别的消息
+    T_PROPERTY_DOWN,    // 属性下发
+    T_ACTION_DOWN       // 动作调用
+} MsgType;
+
 // 动作出参,需要自动生成
 typedef struct iothub_action_param
 {
@@ -17,9 +16,25 @@ typedef struct iothub_action_param
     int action_p2;
     //...
 } iothub_action_param;
-// ##AUTO-GEN-END
+typedef struct iothub_property
+{
+    int a;
+    int b;
+    //...
+} iothub_property;
+
 //
-// 回复类消息
+// 属性
+//
+typedef struct iothub_down_msg
+{
+    char *method;                    // 方法名一般不会太长
+    char *id;                        // Id
+    long timestamp;                  // 时间戳
+    char *actionid;                  // 当method==action表示动作的ID
+    iothub_property property_data;   // 属性
+    iothub_action_param action_data; // 动作
+} iothub_down_msg;
 //
 typedef struct iothub_reply_msg
 {
@@ -28,43 +43,15 @@ typedef struct iothub_reply_msg
     int code;
     long timestamp;
     const char *status;
+    char *actionid;          // 当method==action表示动作的ID
+    iothub_action_param out; // 当method==action表示动作的出参
 } iothub_reply_msg;
-// 动作回复
-typedef struct iothub_action_reply_msg
-{
-    iothub_reply_msg reply_msg; // 结构体组合
-    //-------------------------------------------
-    char *actionid;          // 动作的ID
-    iothub_action_param out; // 动作的出参
-    //-------------------------------------------
-} iothub_action_reply_msg;
-//
-// 属性
-//
-typedef struct iothub_property_msg
-{
-    char *method;      // 方法名一般不会太长
-    char *id;          // Id
-    long timestamp;    // 时间戳
-    iothub_property p; // 属性
-} iothub_property_msg;
-//
-typedef struct iothub_action_msg
-{
-    char *method;             // 方法名一般不会太长
-    char *id;                 // Id
-    long timestamp;           // 时间戳
-    iothub_action_param data; // 属性
-} iothub_action_msg;
-// 上报属性数据JSON生成, 具体函数实现由生成器自动生成
-char *SDKBuildPropertyMsg(iothub_property msg);
-// 构建上行回复消息
-char *SDKBuildReplyMsg(iothub_reply_msg msg);
-// 解析属性消息
-int SDKParsePropertyMsg(iothub_property_msg *msg, char *payload);
-// 解析Action
-int SDKParseActionMsg(iothub_action_msg *msg, char *payload);
-// 构建Action
-char *SDKBuildActionReplyMsg(iothub_action_reply_msg msg);
-//
+// 获取属性的ID
+int SDKGetMsgId();
+// 获取属性时间戳
+int SDKGetMsgTimestamp();
+// 获取属性方法
+int SDKGetMsgMethod();
+// 获取动作的ID
+int SDKGetActionId();
 #endif

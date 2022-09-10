@@ -12,3 +12,4 @@ test*
 *.exe
 iothub-device*
 iothub-device-test*
+*.msg

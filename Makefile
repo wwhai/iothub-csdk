@@ -1,7 +1,9 @@
 cc = gcc
 out = iothub-device
-objects = main.o iothub.o iothubconfig.o log.o iothubschema.o cJSON.o utils.o
-objects-test = atest.o iothub.o iothubconfig.o log.o iothubschema.o cJSON.o utils.o
+objects = main.o iothub.o iothubconfig.o log.o\
+    iothubschema.o cJSON.o utils.o iothub_property.o
+objects-test = atest.o iothub.o iothubconfig.o\
+    log.o iothubschema.o cJSON.o utils.o iothub_property.o
 
 .PHONY : all
 all : ${objects}

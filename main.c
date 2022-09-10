@@ -5,17 +5,35 @@
  * 消息回调
  *
  */
-PRIVATEFUNC void OnMessage(struct iothubsdk *sdk, char *message)
-{
 
-    iothub_reply_msg msg = {
+PRIVATEFUNC void OnProperty(struct iothubsdk *sdk, iothub_down_msg msg)
+{
+    iothub_reply_msg rMsg = {
         .method = "property_reply",
-        .id = "10086",
+        .id = msg.id,
         .code = 10086,
-        .timestamp = 10086,
+        .timestamp = 123456,
         .status = "TEST-OK",
     };
-    SDKPropertyReply(sdk, msg);
+    SDKPropertyReply(sdk, rMsg);
+};
+PRIVATEFUNC void OnAction(struct iothubsdk *sdk, iothub_down_msg msg){
+    // iothub_reply_msg msg = {
+    //     .method = "action_reply",
+    //     .id = "10086",
+    //     .code = 10086,
+    //     .timestamp = 10086,
+    //     .actionid = "test-action",
+    //     .status = "TEST-OK",
+    // };
+    // TODO SDKActionReply(sdk, msg);
+};
+/**
+ * 未识别消息回调
+ *
+ */
+PRIVATEFUNC void OnMessage(struct iothubsdk *sdk, char *message){
+
 };
 /**
  * 掉线回调
@@ -45,7 +63,7 @@ int main(int argc, char const *argv[])
         log_fatal("sdk create failed");
         return 0;
     }
-    if (SDKSetCallback(sdk, OnMessage, OnClosed, OnDeliver) != 0)
+    if (SDKSetCallback(sdk, OnMessage, OnClosed, OnDeliver, OnProperty, OnAction) != 0)
     {
         log_fatal("callback create failed");
         return 0;
@@ -69,11 +87,11 @@ int main(int argc, char const *argv[])
         }
         if (cmd[0] == 'H' || cmd[0] == 'h')
         {
-            printf("# SDK for linux C, Version:0.0.1.\n");
+            printf("# SDK for linux C, Version:0.0.1\n");
         }
         else
         {
-            printf("# help: ['Q' or 'q' for exit]\n");
+            printf("## command help ##\n1. 'Q' or 'q' for exit\n2. 'H' or 'h' help message\n");
         }
     }
     SDKStop(sdk);
