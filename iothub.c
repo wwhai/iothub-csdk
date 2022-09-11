@@ -36,20 +36,20 @@ PRIVATEFUNC int msg_arrived(void *context, char *topicName, int topicLen, MQTTCl
     if (rc != MQTTCLIENT_SUCCESS)
     {
         log_error("failed to SDKParseDownMsg, return code %d", rc);
-        return rc;
+        return 1;
     }
     if (strcmp(downMsg.method, "property") == 0)
     {
         sdk->OnProperty(sdk, downMsg);
-        return 0;
+        return 1;
     }
     if (strcmp(downMsg.method, "action") == 0)
     {
         sdk->OnAction(sdk, downMsg);
-        return 0;
+        return 1;
     }
     sdk->OnMessage(sdk, message->payload);
-    return 0;
+    return 1;
 }
 
 PRIVATEFUNC void conn_lost(void *context, char *cause)
@@ -72,8 +72,7 @@ struct iothubsdk *SDKNewMqttDevice()
     int rc;
 
     if ((rc = MQTTClient_create(&client, MQTT_HOST, MQTT_C,
-                                MQTTCLIENT_PERSISTENCE_DEFAULT,
-                                MQTTCLIENT_PERSISTENCE_DEFAULT)) != MQTTCLIENT_SUCCESS)
+                                MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTCLIENT_SUCCESS)
     {
         log_error("failed to create sdk, return code %d", rc);
         return NULL;
