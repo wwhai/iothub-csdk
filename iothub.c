@@ -8,13 +8,13 @@
 #include "utils.h"
 #include "log.h"
 // 属性上报
-extern const char *PROPERTY_UP;
-extern const char *PROPERTY_DOWN;
-extern const char *PROPERTY_REPLY;
-extern const char *ACTION_DOWN;
-extern const char *ACTION_REPLY;
+extern MUTE_STRING PROPERTY_UP;
+extern MUTE_STRING PROPERTY_DOWN;
+extern MUTE_STRING PROPERTY_REPLY;
+extern MUTE_STRING ACTION_DOWN;
+extern MUTE_STRING ACTION_REPLY;
 //
-PRIVATEFUNC void delivered(void *context, MQTTClient_deliveryToken dt)
+PRIVATE void delivered(void *context, MQTTClient_deliveryToken dt)
 {
 
     log_debug("message delivered with token:%d", dt);
@@ -26,7 +26,7 @@ PRIVATEFUNC void delivered(void *context, MQTTClient_deliveryToken dt)
 // 如果是属性, 就调用属性的回调: onProperty(propertyJson)
 // 如果是动作, 就调用动作的回调: onAction(actionJson)
 //
-PRIVATEFUNC int msg_arrived(void *context, char *topicName, int topicLen, MQTTClient_message *message)
+PRIVATE int msg_arrived(void *context, char *topicName, int topicLen, MQTTClient_message *message)
 {
     log_debug("message arrived, topic:%s, message id: %ld, payload: %s", topicName, message->msgid, message->payload);
     struct iothubsdk *sdk = (struct iothubsdk *)context;
@@ -52,7 +52,7 @@ PRIVATEFUNC int msg_arrived(void *context, char *topicName, int topicLen, MQTTCl
     return 1;
 }
 
-PRIVATEFUNC void conn_lost(void *context, char *cause)
+PRIVATE void conn_lost(void *context, char *cause)
 {
     log_warn("connection lost cause:%s", cause);
     struct iothubsdk *sdk = (struct iothubsdk *)context;
@@ -65,9 +65,8 @@ struct iothubsdk *SDKNewMqttDevice()
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
     conn_opts.username = MQTT_U;
     conn_opts.password = MQTT_P;
-    conn_opts.keepAliveInterval = 30;
-    conn_opts.cleansession = 1;
-    conn_opts.retryInterval = 5;
+    conn_opts.cleansession = 1;  // True
+    conn_opts.retryInterval = 5; // 5s
     int rc;
     if ((rc = MQTTClient_create(&client, MQTT_HOST, MQTT_C,
                                 MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTCLIENT_SUCCESS)
@@ -78,6 +77,10 @@ struct iothubsdk *SDKNewMqttDevice()
     struct iothubsdk *sdk = (struct iothubsdk *)malloc(sizeof(struct iothubsdk));
     sdk->client = client;
     sdk->conn_opts = conn_opts;
+    iothub_property *p = (iothub_property *)malloc(sizeof(iothub_property));
+    p->a = 0;
+    p->b = 0;
+    sdk->property = p;
     log_debug("sdk create successfully");
     return sdk;
 }
@@ -117,12 +120,14 @@ int SDKStart(struct iothubsdk *sdk)
                   MQTT_U, MQTT_C, MQTT_HOST, rc);
         return rc; // -1
     }
+    log_info("connect to %s success", MQTT_HOST);
     {
         if ((rc = MQTTClient_subscribe(sdk->client, PROPERTY_DOWN, 1)) != MQTTCLIENT_SUCCESS)
         {
             log_error("failed to subscribe, return code %d", rc);
             return rc; // -1
         }
+        log_info("subscribe %s success", PROPERTY_DOWN);
     }
     {
         if ((rc = MQTTClient_subscribe(sdk->client, ACTION_DOWN, 1)) != MQTTCLIENT_SUCCESS)
@@ -130,6 +135,7 @@ int SDKStart(struct iothubsdk *sdk)
             log_error("failed to subscribe, return code %d", rc);
             return rc; // -1
         }
+        log_info("subscribe %s success", ACTION_DOWN);
     }
     return MQTTCLIENT_SUCCESS;
 }
@@ -145,9 +151,8 @@ int SDKSetProperty(struct iothubsdk *sdk, iothub_property *p)
 // 属性上报
 int SDKPropertyUp(struct iothubsdk *sdk)
 {
-
     char *json = SDKBuildPropertyMsg((*(sdk->property)));
-    int rc = MQTTClient_publish(sdk->client, PROPERTY_UP, strlen(json), json, 1, 0, NULL);
+    int rc = MQTTClient_publish(sdk->client, PROPERTY_UP, strlen(json), json, 0, 0, NULL);
     free(json);
     if (rc != MQTTCLIENT_SUCCESS)
     {
@@ -162,7 +167,7 @@ int SDKPropertyReply(struct iothubsdk *sdk, iothub_reply_msg msg)
     // 属性回复 method 为固定值 'property_reply' 外部不可更改
     msg.method = "property_reply";
     char *json = SDKBuildPropertyReplyMsg(msg);
-    int rc = MQTTClient_publish(sdk->client, PROPERTY_REPLY, strlen(json), json, 1, 0, NULL);
+    int rc = MQTTClient_publish(sdk->client, PROPERTY_REPLY, strlen(json), json, 0, 0, NULL);
     free(json);
     if (rc != MQTTCLIENT_SUCCESS)
     {
@@ -183,7 +188,7 @@ int SDKParseDownMsg(iothub_down_msg *msg, char *payload)
     cJSON *payload_json = cJSON_Parse(payload);
     if (payload_json == NULL)
     {
-        const char *error_ptr = cJSON_GetErrorPtr();
+        MUTE_STRING error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
             log_error("stderr:%s, json parse error: %s\n", stderr, error_ptr);
@@ -249,7 +254,7 @@ end:
 /// @param msg
 /// @param payload
 /// @return
-PRIVATEFUNC int SDKParseParams(iothub_down_msg *msg, cJSON *data)
+PRIVATE int SDKParseParams(iothub_down_msg *msg, cJSON *data)
 {
     int status = 0;
     // Property

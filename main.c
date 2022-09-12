@@ -6,7 +6,7 @@
  *
  */
 
-PRIVATEFUNC void OnProperty(struct iothubsdk *sdk, iothub_down_msg msg)
+PRIVATE void OnProperty(struct iothubsdk *sdk, iothub_down_msg msg)
 {
     iothub_reply_msg rMsg = {
         .method = "property_reply",
@@ -15,9 +15,10 @@ PRIVATEFUNC void OnProperty(struct iothubsdk *sdk, iothub_down_msg msg)
         .timestamp = 123456,
         .status = "TEST-OK",
     };
-    SDKPropertyReply(sdk, rMsg);
+    // SDKPropertyReply(sdk, rMsg);
+    SDKPropertyUp(sdk);
 };
-PRIVATEFUNC void OnAction(struct iothubsdk *sdk, iothub_down_msg msg){
+PRIVATE void OnAction(struct iothubsdk *sdk, iothub_down_msg msg){
     // iothub_reply_msg msg = {
     //     .method = "action_reply",
     //     .id = "10086",
@@ -32,21 +33,21 @@ PRIVATEFUNC void OnAction(struct iothubsdk *sdk, iothub_down_msg msg){
  * 未识别消息回调
  *
  */
-PRIVATEFUNC void OnMessage(struct iothubsdk *sdk, char *message){
+PRIVATE void OnMessage(struct iothubsdk *sdk, char *message){
 
 };
 /**
  * 掉线回调
  *
  */
-PRIVATEFUNC void OnClosed(struct iothubsdk *sdk, char *reason){
+PRIVATE void OnClosed(struct iothubsdk *sdk, char *reason){
 
 };
 /**
  * 消息发布成功回调
  *
  */
-PRIVATEFUNC void OnDeliver(struct iothubsdk *sdk, int token){
+PRIVATE void OnDeliver(struct iothubsdk *sdk, int token){
 
 };
 /**
