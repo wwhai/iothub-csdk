@@ -89,6 +89,14 @@ int main(int argc, char const *argv[])
         {
             printf("# SDK for linux C, Version:0.0.1\n");
         }
+        if (cmd[0] == 'P' || cmd[0] == 'p')
+        {
+            printf("# MQTT_H: %s\n", MQTT_HOST);
+            printf("# MQTT_P: %s\n", MQTT_P);
+            printf("# MQTT_U: %s\n", MQTT_U);
+            printf("# MQTT_C: %s\n", MQTT_C);
+            printf("# STATE: %d\n", MQTTClient_isConnected(sdk->client));
+        }
         else
         {
             printf("## command help ##\n1. 'Q' or 'q' for exit\n2. 'H' or 'h' help message\n");

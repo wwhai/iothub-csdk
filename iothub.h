@@ -6,6 +6,7 @@
 #include "log.h"
 #include "iothubschema.h"
 #include "iothub_property.h"
+#include "iothubconfig.h"
 // 回调
 //
 
@@ -14,7 +15,6 @@ struct iothubsdk
 {
     MQTTClient client;
     MQTTClient_connectOptions conn_opts;
-    int connected;
     iothub_property *property;
     // 公共消息响应, 当发来非iothub格式的数据时走这个函数
     void (*OnMessage)(struct iothubsdk *sdk, char *message);

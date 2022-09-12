@@ -21,13 +21,13 @@ PRIVATEFUNC void delivered(void *context, MQTTClient_deliveryToken dt)
     struct iothubsdk *sdk = (struct iothubsdk *)context;
     sdk->OnDeliver(sdk, (int)dt);
 }
+//
 // 这里需要解析消息来判断类型
 // 如果是属性, 就调用属性的回调: onProperty(propertyJson)
 // 如果是动作, 就调用动作的回调: onAction(actionJson)
 //
 PRIVATEFUNC int msg_arrived(void *context, char *topicName, int topicLen, MQTTClient_message *message)
 {
-
     log_debug("message arrived, topic:%s, message id: %ld, payload: %s", topicName, message->msgid, message->payload);
     struct iothubsdk *sdk = (struct iothubsdk *)context;
 
@@ -56,7 +56,6 @@ PRIVATEFUNC void conn_lost(void *context, char *cause)
 {
     log_warn("connection lost cause:%s", cause);
     struct iothubsdk *sdk = (struct iothubsdk *)context;
-    sdk->connected = 0;
     sdk->OnClosed(sdk, cause);
 }
 //
@@ -70,7 +69,6 @@ struct iothubsdk *SDKNewMqttDevice()
     conn_opts.cleansession = 1;
     conn_opts.retryInterval = 5;
     int rc;
-
     if ((rc = MQTTClient_create(&client, MQTT_HOST, MQTT_C,
                                 MQTTCLIENT_PERSISTENCE_NONE, NULL)) != MQTTCLIENT_SUCCESS)
     {
@@ -80,7 +78,6 @@ struct iothubsdk *SDKNewMqttDevice()
     struct iothubsdk *sdk = (struct iothubsdk *)malloc(sizeof(struct iothubsdk));
     sdk->client = client;
     sdk->conn_opts = conn_opts;
-    sdk->connected = 0;
     log_debug("sdk create successfully");
     return sdk;
 }
@@ -92,26 +89,23 @@ int SDKSetCallback(struct iothubsdk *sdk,
                    void (*OnProperty)(struct iothubsdk *sdk, iothub_down_msg msg),
                    void (*OnAction)(struct iothubsdk *sdk, iothub_down_msg msg))
 {
-    if (sdk != NULL)
+
+    // set sdk to context
+    int rc = MQTTClient_setCallbacks(sdk->client, sdk, conn_lost, msg_arrived, delivered);
+    if (rc != MQTTCLIENT_SUCCESS)
     {
-        // set sdk to context
-        int rc = MQTTClient_setCallbacks(sdk->client, sdk, conn_lost, msg_arrived, delivered);
-        if (rc != MQTTCLIENT_SUCCESS)
-        {
-            log_error("failed to setCallbacks, return code %d", rc);
-            return rc;
-        }
-        else
-        {
-            sdk->OnMessage = OnMessage;
-            sdk->OnClosed = OnClosed;
-            sdk->OnDeliver = OnDeliver;
-            sdk->OnProperty = OnProperty;
-            sdk->OnAction = OnAction;
-            return MQTTCLIENT_SUCCESS;
-        }
+        log_error("failed to setCallbacks, return code %d", rc);
+        return rc;
     }
-    return MQTTCLIENT_FAILURE;
+    else
+    {
+        sdk->OnMessage = OnMessage;
+        sdk->OnClosed = OnClosed;
+        sdk->OnDeliver = OnDeliver;
+        sdk->OnProperty = OnProperty;
+        sdk->OnAction = OnAction;
+        return MQTTCLIENT_SUCCESS;
+    }
 }
 // 启动
 int SDKStart(struct iothubsdk *sdk)
@@ -137,7 +131,6 @@ int SDKStart(struct iothubsdk *sdk)
             return rc; // -1
         }
     }
-    sdk->connected = 1;
     return MQTTCLIENT_SUCCESS;
 }
 
@@ -146,64 +139,37 @@ int SDKStart(struct iothubsdk *sdk)
 //
 int SDKSetProperty(struct iothubsdk *sdk, iothub_property *p)
 {
-    if (sdk != NULL)
-    {
-        sdk->property = p;
-        return MQTTCLIENT_SUCCESS;
-    }
-    return MQTTCLIENT_FAILURE;
+    sdk->property = p;
+    return MQTTCLIENT_SUCCESS;
 }
 // 属性上报
 int SDKPropertyUp(struct iothubsdk *sdk)
 {
-    if (sdk != NULL)
+
+    char *json = SDKBuildPropertyMsg((*(sdk->property)));
+    int rc = MQTTClient_publish(sdk->client, PROPERTY_UP, strlen(json), json, 1, 0, NULL);
+    free(json);
+    if (rc != MQTTCLIENT_SUCCESS)
     {
-        if (sdk->connected)
-        {
-            char *json = SDKBuildPropertyMsg((*(sdk->property)));
-            int rc = MQTTClient_publish(sdk->client, PROPERTY_UP, strlen(json), json, 1, 0, NULL);
-            free(json);
-            if (rc != MQTTCLIENT_SUCCESS)
-            {
-                log_error("failed to publish, return code %d", rc);
-                return rc; // -1
-            }
-        }
-        else
-        {
-            log_error("sdk has disconnected from broker, check your connection.");
-            return MQTTCLIENT_FAILURE; // -1
-        }
-        return MQTTCLIENT_SUCCESS;
+        log_error("failed to publish, return code %d", rc);
+        return rc; // -1
     }
-    return MQTTCLIENT_FAILURE;
+    return MQTTCLIENT_SUCCESS;
 }
 // 回复
 int SDKPropertyReply(struct iothubsdk *sdk, iothub_reply_msg msg)
 {
-    if (sdk != NULL)
+    // 属性回复 method 为固定值 'property_reply' 外部不可更改
+    msg.method = "property_reply";
+    char *json = SDKBuildPropertyReplyMsg(msg);
+    int rc = MQTTClient_publish(sdk->client, PROPERTY_REPLY, strlen(json), json, 1, 0, NULL);
+    free(json);
+    if (rc != MQTTCLIENT_SUCCESS)
     {
-        if (sdk->connected)
-        {
-            // 属性回复 method 为固定值 'property_reply' 外部不可更改
-            msg.method = "property_reply";
-            char *json = SDKBuildPropertyReplyMsg(msg);
-            int rc = MQTTClient_publish(sdk->client, PROPERTY_REPLY, strlen(json), json, 1, 0, NULL);
-            free(json);
-            if (rc != MQTTCLIENT_SUCCESS)
-            {
-                log_error("failed to publish, return code %d", rc);
-                return rc; // -1
-            }
-        }
-        else
-        {
-            log_error("sdk has disconnected from broker, check your connection.");
-            return MQTTCLIENT_FAILURE; // -1
-        }
-        return MQTTCLIENT_SUCCESS;
+        log_error("failed to publish, return code %d", rc);
+        return rc; // -1
     }
-    return MQTTCLIENT_FAILURE;
+    return MQTTCLIENT_SUCCESS;
 }
 
 /// @brief
