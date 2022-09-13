@@ -1,7 +1,7 @@
 {
-    "deviceid": "RULEX-001",
-    "username": "RULEX-001",
-    "password": "RULEX-001",
+    "deviceid": "test1",
+    "username": "test1",
+    "password": "test1",
     "server": "127.0.0.1",
-    "productid": "RULEX"
+    "productid": "test"
 }
