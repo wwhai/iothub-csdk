@@ -5,6 +5,10 @@ https://www.eclipse.org/paho/index.php?page=clients/c/index.php
 ## 依赖
 本SDK依赖用下面命令安装(Ubuntu或者Debian上):
 ```sh
+git clone https://github.com/eclipse/paho.mqtt.c.git
+cd paho.mqtt.c
+make
+sudo make install
 sudo apt install make jq -y
 ```
 ## SDK 生成
