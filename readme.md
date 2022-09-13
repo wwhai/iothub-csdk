@@ -11,6 +11,8 @@ make
 sudo make install
 sudo apt install make jq -y
 ```
+> 注意：如果要在windows下编译，建议使用MSYS2来构建。但是不建议在windows上玩，因为太曲折了。
+
 ## SDK 生成
 首先上iothub生成设备基础信息，复制进 `device-config.json` 这个文件里面,然后执行:
 ```
