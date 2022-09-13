@@ -15,19 +15,23 @@ PRIVATE void OnProperty(struct iothubsdk *sdk, iothub_down_msg msg)
         .timestamp = 123456,
         .status = "TEST-OK",
     };
-    // SDKPropertyReply(sdk, rMsg);
-    SDKPropertyUp(sdk);
+    SDKPropertyReply(sdk, rMsg);
+    // SDKPropertyUp(sdk);
 };
-PRIVATE void OnAction(struct iothubsdk *sdk, iothub_down_msg msg){
-    // iothub_reply_msg msg = {
-    //     .method = "action_reply",
-    //     .id = "10086",
-    //     .code = 10086,
-    //     .timestamp = 10086,
-    //     .actionid = "test-action",
-    //     .status = "TEST-OK",
-    // };
-    // TODO SDKActionReply(sdk, msg);
+PRIVATE void OnAction(struct iothubsdk *sdk, iothub_down_msg msg)
+{
+    iothub_reply_msg rMsg = {
+        .method = "action_reply",
+        .id = "10086",
+        .code = 10086,
+        .timestamp = 10086,
+        .actionid = "test-action",
+        .status = "TEST-OK",
+        .out = {
+            .action_p1 = 1001,
+            .action_p2 = 2001,
+        }};
+    SDKActionReply(sdk, rMsg);
 };
 /**
  * 未识别消息回调

@@ -43,8 +43,10 @@ typedef struct iothub_reply_msg
     int code;
     long timestamp;
     const char *status;
+    // BEGIN: Action 专用
     char *actionid;          // 当method==action表示动作的ID
     iothub_action_param out; // 当method==action表示动作的出参
+    // END: Action 专用
 } iothub_reply_msg;
 // 获取属性的ID
 int SDKGetMsgId();

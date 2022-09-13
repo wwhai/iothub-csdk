@@ -5,6 +5,8 @@
 #include "iothubconfig.h"
 #include "iothubschema.h"
 #include "cJSON.h"
+#include "iothub_property.h"
+#include "iothub_action.h"
 #include "utils.h"
 #include "log.h"
 // 属性上报
@@ -137,6 +139,10 @@ int SDKStart(struct iothubsdk *sdk)
         }
         log_info("subscribe %s success", ACTION_DOWN);
     }
+    iothub_property *p = (iothub_property *)malloc(sizeof(iothub_property));
+    iothub_action_param *a = (iothub_action_param *)malloc(sizeof(iothub_action_param));
+    SDKSetProperty(sdk, p);
+    SDKSetAction(sdk, a);
     return MQTTCLIENT_SUCCESS;
 }
 
@@ -146,6 +152,11 @@ int SDKStart(struct iothubsdk *sdk)
 int SDKSetProperty(struct iothubsdk *sdk, iothub_property *p)
 {
     sdk->property = p;
+    return MQTTCLIENT_SUCCESS;
+}
+int SDKSetAction(struct iothubsdk *sdk, iothub_action_param *a)
+{
+    sdk->action = a;
     return MQTTCLIENT_SUCCESS;
 }
 // 属性上报
@@ -177,6 +188,24 @@ int SDKPropertyReply(struct iothubsdk *sdk, iothub_reply_msg msg)
     return MQTTCLIENT_SUCCESS;
 }
 
+/// @brief
+/// @param sdk
+/// @param msg
+/// @return
+int SDKActionReply(struct iothubsdk *sdk, iothub_reply_msg msg)
+{
+    // 动作回复 method 为固定值 'action_reply' 外部不可更改
+    msg.method = "action_reply";
+    char *json = SDKBuildActionReplyMsg(msg);
+    int rc = MQTTClient_publish(sdk->client, ACTION_REPLY, strlen(json), json, 0, 0, NULL);
+    free(json);
+    if (rc != MQTTCLIENT_SUCCESS)
+    {
+        log_error("failed to publish, return code %d", rc);
+        return rc; // -1
+    }
+    return MQTTCLIENT_SUCCESS;
+}
 /// @brief
 /// @param msg
 /// @param payload

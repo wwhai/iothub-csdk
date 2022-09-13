@@ -6,6 +6,7 @@
 #include "iothub.h"
 #include "utils.h"
 #include "iothub_property.h"
+
 /// @brief
 /// @param msg
 /// @return
@@ -21,7 +22,6 @@ char *SDKBuildPropertyMsg(iothub_property msg)
     cJSON_AddItemToObject(root, "method", method);
     cJSON_AddItemToObject(root, "id", id);
     cJSON_AddItemToObject(root, "timestamp", timestamp);
-    cJSON *data = cJSON_CreateObject();
     SDKBuildPropertyData(root, msg);
     char *string = cJSON_PrintUnformatted(root);
     log_debug("SDKBuildPropertyMsg: %s", string);

@@ -16,6 +16,7 @@ struct iothubsdk
     MQTTClient client;
     MQTTClient_connectOptions conn_opts;
     iothub_property *property;
+    iothub_action_param *action;
     // 公共消息响应, 当发来非iothub格式的数据时走这个函数
     void (*OnMessage)(struct iothubsdk *sdk, char *message);
     // 下发消息
@@ -41,10 +42,13 @@ int SDKSetCallback(struct iothubsdk *sdk,
 int SDKStart(struct iothubsdk *sdk);
 // 设置属性
 PRIVATE int SDKSetProperty(struct iothubsdk *sdk, iothub_property *p);
+PRIVATE int SDKSetAction(struct iothubsdk *sdk, iothub_action_param *a);
 // 属性上报
 int SDKPropertyUp(struct iothubsdk *sdk);
 // 属性回复
 int SDKPropertyReply(struct iothubsdk *sdk, iothub_reply_msg msg);
+// 动作回复
+int SDKActionReply(struct iothubsdk *sdk, iothub_reply_msg msg);
 // 解析把JSON格式的属性解析成结构体
 int SDKParseDownMsg(iothub_down_msg *msg, char *payload);
 // 解析参数, 分配到具体的结构体上, 该函数非常重要, 主要留给生成器生成具体的代码
