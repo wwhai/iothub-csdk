@@ -20,7 +20,7 @@ char *SDKBuildActionReplyMsg(iothub_reply_msg msg)
     cJSON_AddItemToObject(root, "status", status);
     SDKBuildActionOut(root, msg.out);
     char *jsons = cJSON_PrintUnformatted(root);
-    log_debug("SDKBuildPropertyReplyMsg: %s", jsons);
+    log_debug("SDKBuildActionReplyMsg: %s", jsons);
     return jsons;
 }
 // 生成Action的 data 字段, 然后填充到root结构体里面, 该函数自动生成

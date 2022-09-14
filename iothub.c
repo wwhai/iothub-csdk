@@ -319,22 +319,22 @@ PRIVATE int SDKParseParams(iothub_down_msg *msg, cJSON *data)
         //------------------------------------------------------------------------------------------
         // #AUTO-GEN-BEGIN
         //------------------------------------------------------------------------------------------
-        cJSON *a = cJSON_GetObjectItemCaseSensitive(data, "a");
-        if (!cJSON_IsNumber(a))
+        cJSON *action_p1 = cJSON_GetObjectItemCaseSensitive(data, "action_p1");
+        if (!cJSON_IsNumber(action_p1))
         {
             status = -1;
-            log_error("'a' must be json number");
+            log_error("'action_p1' must be json number");
             goto END;
         }
-        msg->action_data.action_p1 = a->valueint;
-        cJSON *b = cJSON_GetObjectItemCaseSensitive(data, "b");
-        if (!cJSON_IsNumber(b))
+        msg->action_data.action_p1 = action_p1->valueint;
+        cJSON *action_p2 = cJSON_GetObjectItemCaseSensitive(data, "action_p2");
+        if (!cJSON_IsNumber(action_p2))
         {
             status = -1;
-            log_error("'b' must be json number");
+            log_error("'action_p2' must be json number");
             goto END;
         }
-        msg->action_data.action_p2 = b->valueint;
+        msg->action_data.action_p2 = action_p2->valueint;
         //------------------------------------------------------------------------------------------
         // #AUTO-GEN-END
         //------------------------------------------------------------------------------------------

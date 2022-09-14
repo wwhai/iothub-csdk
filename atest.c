@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 int publish();
 /**
  * 消息回调
@@ -19,6 +20,14 @@ PRIVATE void OnProperty(struct iothubsdk *sdk, iothub_down_msg msg)
         .timestamp = 123456,
         .status = "TEST-OK",
     };
+    assert(msg.id[0] == 't');
+    assert(msg.id[1] == 'e');
+    assert(msg.id[2] == 's');
+    assert(msg.id[3] == 't');
+
+    assert(msg.timestamp == 159);
+    assert(msg.property_data.a == 147);
+    assert(msg.property_data.b == 258);
     SDKPropertyReply(sdk, rMsg);
 };
 PRIVATE void OnAction(struct iothubsdk *sdk, iothub_down_msg msg)
@@ -34,6 +43,13 @@ PRIVATE void OnAction(struct iothubsdk *sdk, iothub_down_msg msg)
             .action_p1 = 1001,
             .action_p2 = 2001,
         }};
+    assert(msg.id[0] == 't');
+    assert(msg.id[1] == 'e');
+    assert(msg.id[2] == 's');
+    assert(msg.id[3] == 't');
+    assert(msg.action_data.action_p1 == 1002);
+    assert(msg.action_data.action_p2 == 2001);
+
     SDKActionReply(sdk, rMsg);
 };
 /**
@@ -80,10 +96,10 @@ int publish()
                   MQTT_U, MQTT_C, MQTT_HOST, rc);
         return rc; // -1
     }
-    const char *jsons1 = "{\"method\":\"action\",\"id\":\"test\",\"actionid\":\"test\",\"timestamp\":159,\"data\":{\"a\":147,\"b\":258}}";
-    const char *jsons2 = "{\"method\":\"property\",\"id\":\"test\",\"actionid\":\"test\",\"timestamp\":159,\"data\":{\"a\":147,\"b\":258}}";
-    MQTTClient_publish(client, "$thing/down/property/test/test1", strlen(jsons1), jsons1, 0, 0, NULL);
-    MQTTClient_publish(client, "$thing/down/action/test/test1", strlen(jsons2), jsons2, 0, 0, NULL);
+    const char *jsons1 = "{\"method\":\"action\",\"id\":\"test\",\"actionid\":\"test\",\"timestamp\":159,\"data\":{\"action_p1\":1002,\"action_p2\":2001}}";
+    const char *jsons2 = "{\"method\":\"property\",\"id\":\"test\",\"timestamp\":159,\"data\":{\"a\":147,\"b\":258}}";
+    MQTTClient_publish(client, "$thing/down/action/test/test1", strlen(jsons1), jsons1, 0, 0, NULL);
+    MQTTClient_publish(client, "$thing/down/property/test/test1", strlen(jsons2), jsons2, 0, 0, NULL);
 }
 /**
  *
