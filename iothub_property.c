@@ -63,6 +63,9 @@ int SDKBuildPropertyData(cJSON *root, iothub_property msg)
         cJSON_AddItemToObject(pData, "a", a);
         cJSON *b = cJSON_CreateNumber(msg.b);
         cJSON_AddItemToObject(pData, "b", b);
+        cJSON *ar = cJSON_CreateArray();
+        cJSON_AddItemToArray(ar, msg.ar[0]);
+        cJSON_AddItemToArray(ar, msg.ar[1]);
         cJSON *values = cJSON_CreateString(cJSON_PrintUnformatted(pData));
         cJSON_AddItemToObject(root, "data", values);
         //------------------------------------------------------------------------------------------

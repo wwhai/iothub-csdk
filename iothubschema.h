@@ -18,6 +18,7 @@ typedef struct iothub_action_param
 } iothub_action_param;
 typedef struct iothub_property
 {
+    int ar[2];
     int a;
     int b;
     //...
