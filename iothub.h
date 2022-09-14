@@ -18,11 +18,11 @@ struct iothubsdk
     iothub_property *property;
     iothub_action_param *action;
     // 公共消息响应, 当发来非iothub格式的数据时走这个函数
-    void (*OnMessage)(struct iothubsdk *sdk, char *message);
+    void (*OnMessage)(struct iothubsdk *sdk, char *message); // 需要注意, 该函数不可阻塞,必须每个消息一次返回, 所以建议用多线程处理消息并且及时返回
     // 下发消息
-    void (*OnProperty)(struct iothubsdk *sdk, iothub_down_msg msg);
+    void (*OnProperty)(struct iothubsdk *sdk, iothub_down_msg msg); // 需要注意, 该函数不可阻塞,必须每个消息一次返回, 所以建议用多线程处理消息并且及时返回
     // 动作调用
-    void (*OnAction)(struct iothubsdk *sdk, iothub_down_msg msg);
+    void (*OnAction)(struct iothubsdk *sdk, iothub_down_msg msg); // 需要注意, 该函数不可阻塞,必须每个消息一次返回, 所以建议用多线程处理消息并且及时返回
     // 断开连接
     void (*OnClosed)(struct iothubsdk *sdk, char *reason);
     // 消息发送成功
